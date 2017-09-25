@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/count-and-say/
 
-
 class Solution {
 public:
     string countAndSay(int n) {

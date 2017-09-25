@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/longest-harmonious-subsequence/
 
-
 class Solution {
     
 public:
@@ -17,4 +16,3 @@ public:
         return ans;
     }
 };
-

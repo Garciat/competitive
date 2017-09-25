@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/two-sum-iv-input-is-a-bst/
 
-
 class Solution {
 public:
     bool findTarget(TreeNode* root, int k) {
@@ -32,4 +31,3 @@ public:
             return false;
     }
 };
-

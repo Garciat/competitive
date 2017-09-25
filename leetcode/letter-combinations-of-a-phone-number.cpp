@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/letter-combinations-of-a-phone-number/
 
-
 array<char, 4> digit_letters(char d) {
     switch (d) {
         case '2':
@@ -50,4 +49,3 @@ public:
         }
     }
 };
-

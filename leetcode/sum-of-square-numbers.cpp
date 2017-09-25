@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/sum-of-square-numbers/
 
-
 class Solution {
     
 public:

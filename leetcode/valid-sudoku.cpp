@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/valid-sudoku/
 
-
 using usable_t = array<bool, 9>;
 
 template <typename Container, typename T>
@@ -68,4 +67,3 @@ public:
         return true;
     }
 };
-

@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/redundant-connection/
 
-
 class Solution {
     
     using AdjMap = unordered_map<int, vector<int>>;

@@ -22,4 +22,3 @@ func work(node *TreeNode, val int) int {
     }
     return work(node.Left, next) + work(node.Right, next)
 }
-

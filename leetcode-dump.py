@@ -7,7 +7,7 @@ import multiprocessing
 
 API_BASE_URL = 'https://leetcode.com'
 
-SESSION_ID = 'GET YOURS (:'
+SESSION_ID = os.getenv('SESSION_ID', '')
 
 COOKIES = dict(LEETCODE_SESSION=SESSION_ID)
 
@@ -92,7 +92,7 @@ def download_submission(descriptor):
 
     contents = lang_comment(descriptor['lang'], ref_link)
     contents += '\n\n'
-    contents += submission.source
+    contents += submission.source.strip()
     contents += '\n'
 
     return SourceFile(

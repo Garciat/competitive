@@ -36,4 +36,3 @@ public:
         return (int)(is_neg ? -r : r);
     }
 };
-

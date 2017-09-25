@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/find-mode-in-binary-search-tree/
 
-
 class Solution {
 public:
     vector<int> findMode(TreeNode* root) {

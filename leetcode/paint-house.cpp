@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/paint-house/
 
-
 class Solution {
 public:
     int minCost(vector<vector<int>>& costs) {
@@ -14,4 +13,3 @@ public:
         return min(b[0], min(b[1], b[2]));
     }
 };
-

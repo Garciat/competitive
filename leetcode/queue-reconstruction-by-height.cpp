@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/queue-reconstruction-by-height/
 
-
 bool my_sorter(pair<int, int> x, pair<int, int> y) {
     if (x.first == y.first) {
         return x.second < y.second;

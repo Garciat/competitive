@@ -13,4 +13,3 @@ public:
         return s.size() % 2 == 0 ? (n_odd == 0) : (n_odd == 1);
     }
 };
-

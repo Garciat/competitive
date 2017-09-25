@@ -1,6 +1,5 @@
 // https://leetcode.com/problems/reverse-vowels-of-a-string/
 
-
 bool is_vowel(char c) {
     c = tolower(c);
     return c == 'a'
@@ -35,4 +34,3 @@ public:
         
     }
 };
-

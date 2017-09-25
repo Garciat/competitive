@@ -23,4 +23,3 @@ var findDiagonalOrder = function(matrix) {
     
     return ps.map(function (p) { return p[2]; });
 };
-
