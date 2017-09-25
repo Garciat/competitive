@@ -1,13 +1,17 @@
 // https://leetcode.com/problems/valid-number/
 
 template <char... Cs>
-struct chars {
-    bool operator()(char c) {
+struct chars_impl {
+    constexpr bool operator()(char c) const {
         return ((c==Cs) || ... || false);
     }
 };
 
+template <char... Cs>
+constexpr chars_impl<Cs...> chars = {};
+
 struct NumberParser {
+    
     const string &s;
     int i;
     
@@ -15,28 +19,21 @@ struct NumberParser {
     
     bool isNumber() {
         try {
-            skipMany(s, ' ');
-            if (s[i] == '+' || s[i] == '-') {
-                i += 1;
-            }
-            if (s[i] == '.') {
-                i += 1;
-                integerUntil(s, chars<'e', ' '>());
+            skipMany(chars<' '>);
+            skipOpt(chars<'+', '-'>);
+            if (skipOpt(chars<'.'>)) {
+                integerUntil(chars<'e', ' '>);
             } else {
-                integerUntil(s, chars<'.', 'e', ' '>());
-                if (s[i] == '.') {
-                    i += 1;
-                    integerOptUntil(s, chars<'e', ' '>());
+                integerUntil(chars<'.', 'e', ' '>);
+                if (skipOpt(chars<'.'>)) {
+                    integerOptUntil(chars<'e', ' '>);
                 }
             }
-            if (s[i] == 'e') {
-                i += 1;
-                if (s[i] == '+' || s[i] == '-') {
-                    i += 1;
-                }
-                integerUntil(s, chars<' '>());
+            if (skipOpt(chars<'e'>)) {
+                skipOpt(chars<'+', '-'>);
+                integerUntil(chars<' '>);
             }
-            skipMany(s, ' ');
+            skipMany(chars<' '>);
             return i == s.size();
         } catch (runtime_error &e) {
             cout << e.what() << endl;
@@ -44,19 +41,30 @@ struct NumberParser {
         }
     }
     
-    void skipMany(const string &s, char c) {
-        while (s[i] == c) ++i;
+    template <typename Pred>
+    void skipMany(Pred pred) {
+        while (pred(s[i])) ++i;
     }
     
     template <typename Pred>
-    void integerUntil(const string &s, Pred pred) {
-        if (integerOptUntil(s, pred) == 0) {
+    bool skipOpt(Pred pred) {
+        if (pred(s[i])) {
+            i += 1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    template <typename Pred>
+    void integerUntil(Pred pred) {
+        if (integerOptUntil(pred) == 0) {
             throw runtime_error{"no read"};
         }
     }
     
     template <typename Pred>
-    int integerOptUntil(const string &s, Pred pred) {
+    int integerOptUntil(Pred pred) {
         int k = 0;
         for (; s[i]; ++i, ++k) {
             if (isdigit(s[i])) {
