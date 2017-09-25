@@ -5,9 +5,9 @@ struct chars;
 
 template <char C, char... Cs>
 struct chars<C, Cs...> {
-	bool operator()(char c) {
-    	return c==C || chars<Cs...>()(c);
-  	}
+    bool operator()(char c) {
+        return c==C || chars<Cs...>()(c);
+    }
 };
 
 template <>
