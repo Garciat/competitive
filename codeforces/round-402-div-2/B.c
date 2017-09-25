@@ -1,3 +1,5 @@
+// http://codeforces.com/problemset/problem/779/B
+
 #include <stdio.h>
 
 int solve(int n, int k) {

@@ -1,3 +1,5 @@
+// http://codeforces.com/problemset/problem/779/A
+
 #include <stdio.h>
 
 #define MAX_N 101

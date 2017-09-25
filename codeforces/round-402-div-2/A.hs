@@ -1,3 +1,5 @@
+-- http://codeforces.com/problemset/problem/779/A
+
 module Main (main) where
 
 import Control.Monad

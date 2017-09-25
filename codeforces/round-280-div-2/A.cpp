@@ -1,3 +1,5 @@
+// http://codeforces.com/problemset/problem/492/A
+
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
@@ -14,15 +16,18 @@ int main() {
     int n;
     cin >> n;
 
-    vector<int> as(n);
-    for (int& a : as)
-        cin >> a;
-    
-    sort(begin(as), end(as));
+    int i = 1;
+    int c = 1;
+    int s = 1;
+    for (;;) {
+        s += i + 1;
+        c += s;
+        if (c > n)
+            break;
+        i += 1;
+    }
 
-    for (int a : as)
-        cout << a << ' ';
-    cout << endl;
+    cout << i << endl;
 
     return 0;
 }
