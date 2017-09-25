@@ -1,5 +1,6 @@
 // https://leetcode.com/problems/next-closest-time/
 
+
 int digit(char c) {
     return c - '0';
 }
