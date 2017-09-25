@@ -8,7 +8,7 @@ struct chars_impl {
 };
 
 template <char... Cs>
-constexpr chars_impl<Cs...> chars = {};
+constexpr chars_impl<Cs...> chars;
 
 struct NumberParser {
     
