@@ -1,39 +1,32 @@
 // https://leetcode.com/problems/valid-number/
 
-template <char...>
-struct chars;
-
-template <char C, char... Cs>
-struct chars<C, Cs...> {
+template <char... Cs>
+struct chars {
     bool operator()(char c) {
-        return c==C || chars<Cs...>()(c);
+        return ((c==Cs) || ... || false);
     }
 };
 
-template <>
-struct chars<> {
-    bool operator()(char c) {
-        return false;
-    }
-};
-
-class Solution {
-public:
-    bool isNumber(string s) {
+struct NumberParser {
+    const string &s;
+    int i;
+    
+    NumberParser(const string &s) : s{s}, i{0} { }
+    
+    bool isNumber() {
         try {
-            int i = 0;
-            skipMany(s, ' ', i);
+            skipMany(s, ' ');
             if (s[i] == '+' || s[i] == '-') {
                 i += 1;
             }
             if (s[i] == '.') {
                 i += 1;
-                integerUntil(s, chars<'e', ' '>(), i);
+                integerUntil(s, chars<'e', ' '>());
             } else {
-                integerUntil(s, chars<'.', 'e', ' '>(), i);
+                integerUntil(s, chars<'.', 'e', ' '>());
                 if (s[i] == '.') {
                     i += 1;
-                    integerOptUntil(s, chars<'e', ' '>(), i);
+                    integerOptUntil(s, chars<'e', ' '>());
                 }
             }
             if (s[i] == 'e') {
@@ -41,9 +34,9 @@ public:
                 if (s[i] == '+' || s[i] == '-') {
                     i += 1;
                 }
-                integerUntil(s, chars<' '>(), i);
+                integerUntil(s, chars<' '>());
             }
-            skipMany(s, ' ', i);
+            skipMany(s, ' ');
             return i == s.size();
         } catch (runtime_error &e) {
             cout << e.what() << endl;
@@ -51,19 +44,19 @@ public:
         }
     }
     
-    void skipMany(const string &s, char c, int &i) {
+    void skipMany(const string &s, char c) {
         while (s[i] == c) ++i;
     }
     
     template <typename Pred>
-    void integerUntil(const string &s, Pred pred, int &i) {
-        if (integerOptUntil(s, pred, i) == 0) {
+    void integerUntil(const string &s, Pred pred) {
+        if (integerOptUntil(s, pred) == 0) {
             throw runtime_error{"no read"};
         }
     }
     
     template <typename Pred>
-    int integerOptUntil(const string &s, Pred pred, int &i) {
+    int integerOptUntil(const string &s, Pred pred) {
         int k = 0;
         for (; s[i]; ++i, ++k) {
             if (isdigit(s[i])) {
@@ -75,5 +68,12 @@ public:
             throw runtime_error{"bad char"};
         }
         return k;
+    }
+};
+
+class Solution {
+public:
+    bool isNumber(string s) {
+        return NumberParser{s}.isNumber();
     }
 };
