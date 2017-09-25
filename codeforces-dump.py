@@ -75,9 +75,11 @@ class Submission(namedtuple('Submission', ['id', 'problem', 'verdict', 'language
     def filename(self):
         return self.language.format_filename(self.problem.index)
 
-
-class SourceFile(namedtuple('SourceFile', ['submission', 'contest', 'contents'])):
-    pass
+    def format_source(self, source):
+        return '{}\n\n{}\n'.format(
+            self.source_tag,
+            source.replace('\r\n', '\n').strip(),
+        )
 
 
 class NoResponse(BaseException):
@@ -220,25 +222,6 @@ def get_submission_source_contents(submission_id, session):
     return response['source']
 
 
-def format_submission_source(submission, source):
-    return '{}\n\n{}\n'.format(
-        submission.source_tag,
-        source.replace('\r\n', '\n').strip(),
-    )
-
-
-def get_submission_source_file(submission, session):
-    contest = get_contest(submission.problem.contest_id)
-
-    source = get_submission_source_contents(submission.id, session)
-
-    return SourceFile(
-        submission=submission,
-        contest=contest,
-        contents=format_submission_source(submission, source),
-    )
-
-
 def download_user_submissions(user_handle, destination, session_id):
     session = get_session(session_id)
 
@@ -246,10 +229,10 @@ def download_user_submissions(user_handle, destination, session_id):
     ok_submissions = [s for s in submissions if s.is_ok]
 
     for submission in ok_submissions:
-        source_file = get_submission_source_file(submission, session)
+        contest = get_contest(submission.problem.contest_id)
 
-        filebase = os.path.join(destination, source_file.contest.slug)
-        filename = source_file.submission.filename
+        filebase = os.path.join(destination, contest.slug)
+        filename = submission.filename
         filepath = os.path.join(filebase, filename)
 
         if os.path.exists(filepath):
@@ -257,8 +240,10 @@ def download_user_submissions(user_handle, destination, session_id):
 
         makedirs_safe(filebase, SUBDIR_MODE)
 
+        source = get_submission_source_contents(submission.id, session)
+
         with open(filepath, 'wt') as f:
-            f.write(source_file.contents)
+            f.write(submission.format_source(source))
 
         print 'DONE', filepath
 
