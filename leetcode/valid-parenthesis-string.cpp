@@ -18,4 +18,4 @@ public:
                 return work(s, i+1, p) || work(s, i+1, p+1) || work(s, i+1, p-1);
         }
     }
-
+};
