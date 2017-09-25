@@ -16,9 +16,11 @@ PAGE_SIZE = 100
 SUBDIR_MODE = 0755
 
 LANGUAGE_INFO = [
+    ('GNU C', 'c', '//'),
+    ('GNU C11', 'c', '//'),
     ('GNU C++', 'cpp', '//'),
     ('GNU C++0x', 'cpp', '//'),
-    ('GNU C11', 'c', '//'),
+    ('GNU C++11', 'cpp', '//'),
     ('GNU C++14', 'cpp', '//'),
     ('Haskell', 'hs', '--'),
     ('Python 2', 'py', '#'),
