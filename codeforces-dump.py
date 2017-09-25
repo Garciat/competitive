@@ -2,7 +2,9 @@ import argparse
 from collections import namedtuple
 import errno
 from functools import partial
+from functools32 import lru_cache
 import itertools
+import multiprocessing.pool
 import os
 import re
 import requests
@@ -82,8 +84,30 @@ class Submission(namedtuple('Submission', ['id', 'problem', 'verdict', 'language
         )
 
 
+class SourceFile(namedtuple('SourceFile', ['filename', 'contents'])):
+    pass
+
+
 class NoResponse(BaseException):
     pass
+
+
+def with_retry(f):
+    response = None
+    wait_time = 1.5
+
+    for i in range(10):
+        try:
+            response = f()
+        except:
+            time.sleep(wait_time ** (i + 1))
+        else:
+            break
+
+    if response is None:
+        raise NoResponse
+
+    return response
 
 
 def makedirs_safe(path, mode):
@@ -104,13 +128,14 @@ def canonicalize_contest_name(raw_name):
     return remove_prefix(slug, 'codeforces-')
 
 
+@lru_cache(maxsize=1000)
 def get_contest(contest_id):
     url = '{}/api/contest.standings?contestId={}&from=1&count=1'.format(
         API_BASE_URL,
         contest_id,
     )
 
-    response = requests.get(url).json()
+    response = with_retry(lambda: requests.get(url).json())
 
     name = response['result']['contest']['name']
     slug = canonicalize_contest_name(name)
@@ -130,7 +155,7 @@ def get_user_submissions_page(user_handle, index, count):
         count,
     )
 
-    response = requests.get(url).json()
+    response = with_retry(lambda: requests.get(url).json())
 
     submissions = []
 
@@ -173,13 +198,14 @@ def get_session(session_id):
         'JSESSIONID': session_id,
     }
 
-    r = requests.get(url, cookies=cookies, stream=True)
+    r = with_retry(lambda: requests.get(url, cookies=cookies, stream=True))
 
     csrf_token = None
 
     for line in r.iter_lines():
         if '<meta name="X-Csrf-Token"' in line:
             csrf_token = line.split('"')[3]
+            r.close()
             break
 
     if csrf_token is None:
@@ -205,21 +231,20 @@ def get_submission_source_contents(submission_id, session):
         'JSESSIONID': session.session_id,
     }
 
-    # This request is flaky
-    response = None
-    wait_time = 1.5
-    for i in range(10):
-        try:
-            response = requests.post(url, data=data, cookies=cookies).json()
-        except:
-            time.sleep(wait_time ** (i + 1))
-        else:
-            break
-
-    if response is None:
-        raise NoResponse
+    response = with_retry(lambda: requests.post(url, data=data, cookies=cookies).json())
 
     return response['source']
+
+
+def get_source_file(submission, session):
+    contest = get_contest(submission.problem.contest_id)
+
+    source = get_submission_source_contents(submission.id, session)
+
+    return SourceFile(
+        filename=os.path.join(contest.slug, submission.filename),
+        contents=submission.format_source(source),
+    )
 
 
 def download_user_submissions(user_handle, destination, session_id):
@@ -228,22 +253,20 @@ def download_user_submissions(user_handle, destination, session_id):
     submissions = get_user_submissions(user_handle)
     ok_submissions = [s for s in submissions if s.is_ok]
 
-    for submission in ok_submissions:
-        contest = get_contest(submission.problem.contest_id)
+    pool = multiprocessing.pool.ThreadPool(4)
 
-        filebase = os.path.join(destination, contest.slug)
-        filename = submission.filename
-        filepath = os.path.join(filebase, filename)
+    func = partial(get_source_file, session=session)
+
+    for source_file in pool.imap(func, ok_submissions):
+        filepath = os.path.join(destination, source_file.filename)
 
         if os.path.exists(filepath):
             continue
 
-        makedirs_safe(filebase, SUBDIR_MODE)
-
-        source = get_submission_source_contents(submission.id, session)
+        makedirs_safe(os.path.dirname(filepath), SUBDIR_MODE)
 
         with open(filepath, 'wt') as f:
-            f.write(submission.format_source(source))
+            f.write(source_file.contents)
 
         print 'DONE', filepath
 
