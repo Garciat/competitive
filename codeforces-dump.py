@@ -31,10 +31,10 @@ class Language(object):
         self.name = name
         self.ext = ext
         self.comment = comment
-    
+
     def format_filename(self, s):
         return '{}.{}'.format(s, self.ext)
-    
+
     def format_comment(self, s):
         return '{} {}'.format(self.comment, s)
 
@@ -141,7 +141,7 @@ def get_user_submissions_page(user_handle, index, count):
             verdict=fields['verdict'],
             language=LANGUAGES[fields['programmingLanguage']],
         ))
-    
+
     return submissions
 
 
@@ -153,7 +153,7 @@ def get_user_submissions(user_handle):
         if not page:
             break
         submissions.extend(page)
-    
+
     return submissions
 
 
@@ -177,10 +177,10 @@ def get_session(session_id):
         if '<meta name="X-Csrf-Token"' in line:
             csrf_token = line.split('"')[3]
             break
-    
+
     if csrf_token is None:
         raise NoResponse
-    
+
     return Session(
         session_id=session_id,
         csrf_token=csrf_token,
@@ -203,14 +203,15 @@ def get_submission_source_contents(submission_id, session):
 
     # This request is flaky
     response = None
+    wait_time = 1.5
     for i in range(10):
         try:
             response = requests.post(url, data=data, cookies=cookies).json()
         except:
-            time.sleep(1)
+            time.sleep(wait_time ** (i + 1))
         else:
             break
-    
+
     if response is None:
         raise NoResponse
 
