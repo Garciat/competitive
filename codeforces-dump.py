@@ -186,6 +186,11 @@ def get_user_submissions(user_handle):
     return submissions
 
 
+def get_user_ok_submissions(user_handle):
+    submissions = get_user_submissions(user_handle)
+    return [s for s in submissions if s.is_ok]
+
+
 def get_session(session_id):
     """Looks for the following tag:
 
@@ -247,28 +252,33 @@ def get_source_file(submission, session):
     )
 
 
+def save_source_file(destination, source_file):
+    filepath = os.path.join(destination, source_file.filename)
+
+    if os.path.exists(filepath):
+        return None
+
+    makedirs_safe(os.path.dirname(filepath), SUBDIR_MODE)
+
+    with open(filepath, 'wt') as f:
+        f.write(source_file.contents)
+
+    return filepath
+
+
 def download_user_submissions(user_handle, destination, session_id):
     session = get_session(session_id)
 
-    submissions = get_user_submissions(user_handle)
-    ok_submissions = [s for s in submissions if s.is_ok]
+    submissions = get_user_ok_submissions(user_handle)
 
     pool = multiprocessing.pool.ThreadPool(4)
 
     func = partial(get_source_file, session=session)
 
-    for source_file in pool.imap(func, ok_submissions):
-        filepath = os.path.join(destination, source_file.filename)
-
-        if os.path.exists(filepath):
-            continue
-
-        makedirs_safe(os.path.dirname(filepath), SUBDIR_MODE)
-
-        with open(filepath, 'wt') as f:
-            f.write(source_file.contents)
-
-        print 'DONE', filepath
+    for source_file in pool.imap(func, submissions):
+        filepath = save_source_file(destination, source_file)
+        if filepath:
+            print 'DONE', filepath
 
 
 def main():
