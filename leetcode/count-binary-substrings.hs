@@ -1,3 +1,5 @@
+-- https://leetcode.com/problems/count-binary-substrings/
+
 splitByEqualRuns :: Eq a => [a] -> [[a]]
 splitByEqualRuns [] = []
 splitByEqualRuns (x:xs) =
