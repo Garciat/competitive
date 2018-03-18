@@ -17,26 +17,20 @@ data Vec n a where
   VNil  :: Vec Z a
   VCons :: a -> Vec n a -> Vec (S n) a
 
-class IdleState n a where
-  _idle :: Vec n Int -> a
+class Prog n a where
+  _prog :: Vec n Int -> a
 
-class PushState n a where
-  _push :: Vec n Int -> a
+instance (r ~ Int, Prog (S n) a) => Prog n (Push -> r -> a) where
+  _prog xs = \Push x -> _prog (VCons x xs)
 
-instance (PushState n a) => IdleState n (Push -> a) where
-  _idle xs = \Push -> _push xs
+instance (Prog (S n) a) => Prog (S (S n)) (Add -> a) where
+  _prog (VCons x (VCons y xs)) = \Add -> _prog (VCons (x + y) xs)
 
-instance (IdleState (S n) a) => IdleState (S (S n)) (Add -> a) where
-  _idle (VCons x (VCons y xs)) = \Add -> _idle (VCons (x + y) xs)
+instance (Integral a) => Prog (S n) (End -> a) where
+  _prog (VCons x _) = \End -> fromIntegral x
 
-instance (Integral a) => IdleState (S n) (End -> a) where
-  _idle (VCons x _) = \End -> fromIntegral x
-
-instance (r ~ Int, IdleState (S n) a) => PushState n (r -> a) where
-  _push xs = \x -> _idle (VCons x xs)
-
-begin :: IdleState Z a => a
-begin = _idle VNil
+begin :: Prog Z a => a
+begin = _prog VNil
 
 push :: Push
 push = Push
@@ -46,6 +40,3 @@ add = Add
 
 end :: End
 end = End
-
-main = do
-  print (begin push 1 push 3 end == 3)
