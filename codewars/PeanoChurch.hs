@@ -1,17 +1,12 @@
-{-# LANGUAGE 
-  FlexibleInstances, 
-  UndecidableInstances, 
-  InstanceSigs,
-  ScopedTypeVariables,
-  RankNTypes #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PeanoChurch where
 
 import Data.List
-import Test.Hspec
-import Test.QuickCheck
-import System.Timeout
-import Data.Proxy
 
 type ISO a b = (a -> b, b -> a)
 -- See https://www.codewars.com/kata/isomorphism
@@ -133,67 +128,23 @@ instance Nat Scott where
 newtype Church = Church { runChurch :: forall a. (a -> a) -> a -> a }
 
 predecessor :: Church -> Church
-predecessor n =
+predecessor (Church n) =
   Church (\f x ->
-    let (p, _) = runChurch n (\(_, g) -> (g, f . g)) (id, id)
+    let (p, _) = n (\(_, g) -> (g, f . g)) (id, id)
       in p x)
 
 instance Nat Church where
   zero = Church (\f x -> x)
-  successor n = Church (\f x -> f (runChurch n f x))
+  successor (Church n) = Church (\f x -> f (n f x))
   
   nat z s n = runChurch n (\_ -> s (predecessor n)) z
   
-  iter z s n = runChurch n s z
+  iter z s (Church n) = n s z
   
-  plus n m = Church (\f x -> runChurch n f (runChurch m f x))
+  Church n `plus` Church m = Church (\f x -> n f (m f x))
   
-  minus n m = runChurch m predecessor n
+  n `minus` Church m = m predecessor n
   
-  mult n m = Church (\f -> runChurch n (runChurch m f))
+  Church n `mult` Church m = Church (\f -> n (m f))
   
-  pow n m = Church (runChurch m (runChurch n))
-
-
-test :: (Nat n, Num n, Eq n, Show n) => Proxy n -> Spec
-test (p :: Proxy n) = do
-  it "0 + x = x" $
-    property (\(NonNegative x) -> 0 + from x == from x)
-  it "successor x + y = successor (x + y)" $
-    property (\(NonNegative x) (NonNegative y) ->
-      successor (from x) + from y == successor (from x + from y))
-  it "0 * x = 0" $
-    property (\(NonNegative x) -> 0 * from x == 0)
-  it "0 - x = 0" $
-    property (\(NonNegative x) -> 0 - from x == 0)
-  it "x - 0 = x" $
-    property (\(NonNegative x) -> from x - 0 == from x)
-  it "successor x - successor y = x - y" $
-    property (\(NonNegative x) (NonNegative y) ->
-      successor (from x) - successor (from y) == from x - from y)
-  it "successor x * y = y + (x * y)" $
-    property (\(NonNegative x) (NonNegative y) -> 
-      successor (from x) * from y == from y + from x * from y)
-  it "x `pow` 0 == 1" $
-    property (\(NonNegative x) -> from x `pow` 0 == 1)
-  it "2 ^ 3 == 8" $
-    2 `pow` 3 `shouldBe` from 8
-  it "3 ^ 2 == 9" $
-    3 `pow` 2 `shouldBe` from 9
-  it "pred 0 == Nothing" $
-    pred (from 0) `shouldBe` Nothing
-  it "pred (successor x) == Just x" $
-    property (\(NonNegative x) -> 
-      pred (successor (from x)) == Just (from x))
-  it "iter 0 (1 +) x == x" $
-    property (\(NonNegative x) -> iter 0 (1 +) (from x) == x)
-  where
-    from x = fromInteger x :: n
-    pred = nat Nothing Just
-
-
-main = do
-  hspec $ describe "Peano" $ test (Proxy :: Proxy Peano)
-  hspec $ describe "[()]" $ test (Proxy :: Proxy [()])
-  hspec $ describe "Scott" $ test (Proxy :: Proxy Scott)
-  hspec $ describe "Church" $ test (Proxy :: Proxy Church)
+  Church n `pow` Church m = Church (m n)
