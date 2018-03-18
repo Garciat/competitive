@@ -4,7 +4,6 @@
 module Skyscrapers4 where
 
 import Control.Monad
-import Control.Monad.Except
 import Data.List           (groupBy, intercalate, permutations, transpose)
 import Data.Map.Strict     (Map)
 import Data.Vector.Unboxed (Vector)
@@ -42,11 +41,11 @@ solution n clues = go 0 initial
       | i == length clues = take n $ map head options
       | otherwise = do
         strip <- options !! i
-        case runExcept (constrain n i strip options) of
-          Right options' -> go (i+1) options'
-          otherwise      -> []
+        case constrain n i strip options of
+          Just options' -> go (i+1) options'
+          otherwise     -> []
 
-constrain :: Int -> Int -> Strip -> [[Strip]] -> Except () [[Strip]]
+constrain :: Int -> Int -> Strip -> [[Strip]] -> Maybe [[Strip]]
 constrain n i strip =
   zipWithM g [0..]
   where
@@ -54,8 +53,8 @@ constrain n i strip =
 
     g j level =
       case f j level of
-        [] -> throwError ()
-        xs -> pure xs
+        [] -> Nothing
+        xs -> Just xs
 
     f :: Int -> [Strip] -> [Strip]
     f j level
