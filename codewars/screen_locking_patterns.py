@@ -1,3 +1,5 @@
+# https://www.codewars.com/kata/screen-locking-patterns
+
 from itertools import chain
 
 
