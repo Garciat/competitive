@@ -22,40 +22,47 @@ type Col = [Int] -- 9
 type Square = [Int] -- 3x3
 type Ix = (Int, Int) -- [0..8] both ; row, col
 
-indices :: [Ix]
-indices = do
-  i <- [0..8]
-  j <- [0..8]
-  return (i, j)
+rowRange :: [Int]
+rowRange = [0..8]
+
+colRange :: [Int]
+colRange = [0..8]
+
+cellValues :: [Int]
+cellValues = [1..9]
+
+ixRange :: [Ix]
+ixRange = [(i, j) | i <- rowRange, j <- colRange]
 
 readBoard :: Board -> Ix -> Int
 readBoard b (i, j) = b !! i !! j
 
 emptyIndices :: Board -> [Ix]
-emptyIndices b = [ix | ix <- indices, readBoard b ix == 0]
+emptyIndices b = [ix | ix <- ixRange, readBoard b ix == 0]
 
 cellRow :: Board -> Ix -> Row
-cellRow b (i, _) = [readBoard b (i, j) | j <- [0..8]]
+cellRow b (i, _) = [readBoard b (i, j) | j <- colRange]
 
 cellCol :: Board -> Ix -> Col
-cellCol b (_, j) = [readBoard b (i, j) | i <- [0..8]]
+cellCol b (_, j) = [readBoard b (i, j) | i <- rowRange]
 
 cellSquare :: Board -> Ix -> Square
 cellSquare b (i, j) = do
-  let x = (i `div` 3) * 3
-  let y = (j `div` 3) * 3
-  i' <- [x..x+2]
-  j' <- [y..y+2]
+  let size = 3
+  let x = (i `div` size) * size
+  let y = (j `div` size) * size
+  i' <- [x..x+size-1]
+  j' <- [y..y+size-1]
   return (readBoard b (i', j'))
 
 rowCandidates :: Board -> Ix -> [Int]
-rowCandidates b ix = [1..9] \\ cellRow b ix
+rowCandidates b ix = cellValues \\ cellRow b ix
 
 colCandidates :: Board -> Ix -> [Int]
-colCandidates b ix = [1..9] \\ cellCol b ix
+colCandidates b ix = cellValues \\ cellCol b ix
 
 squareCandidates :: Board -> Ix -> [Int]
-squareCandidates b ix = [1..9] \\ cellSquare b ix
+squareCandidates b ix = cellValues \\ cellSquare b ix
 
 boardCandidates :: Board -> [(Ix, [Int])]
 boardCandidates b = do
