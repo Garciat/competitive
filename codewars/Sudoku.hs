@@ -1,7 +1,6 @@
 module Sudoku where
 
 import Data.List (sortOn, (\\), intersect)
-import Control.Monad (guard)
 
 ---
 
